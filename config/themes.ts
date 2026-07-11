@@ -107,7 +107,7 @@ export function parseThemeDefinition(source: string, raw: unknown): ThemeDefinit
 }
 
 export function loadThemeFile(path: string): ThemeDefinition {
-  const raw = parse(readFileSync(path, "utf8"));
+  const raw: unknown = parse(readFileSync(path, "utf8"));
   const theme = parseThemeDefinition(path, raw);
   const expectedFile = `${theme.name}.yaml`;
   if (basename(path) !== expectedFile) {
