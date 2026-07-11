@@ -1,4 +1,4 @@
-import { homedir } from "node:os";
+import { homedir, networkInterfaces } from "node:os";
 import { join, resolve } from "node:path";
 
 function expandHome(path: string): string {
@@ -58,4 +58,45 @@ export function resolveCliModelAlias(role: ModelRole): string {
 export function isDryRun(): boolean {
   const raw = process.env.SAKIN_DRY_RUN;
   return raw === "1" || raw === "true";
+}
+
+function isTailscaleAddress(address: string): boolean {
+  // Tailscale assigns IPv4 addresses from the 100.64.0.0/10 CGNAT range.
+  const match = address.match(/^100\.(\d{1,3})\./);
+  if (!match) return false;
+  const secondOctet = Number(match[1]);
+  return secondOctet >= 64 && secondOctet <= 127;
+}
+
+export function detectTailscaleAddress(): string | null {
+  const interfaces = networkInterfaces();
+  for (const addresses of Object.values(interfaces)) {
+    for (const info of addresses ?? []) {
+      if (info.family === "IPv4" && isTailscaleAddress(info.address)) {
+        return info.address;
+      }
+    }
+  }
+  return null;
+}
+
+export function resolveBindAddress(): string {
+  return process.env.SAKIN_BIND_ADDRESS || detectTailscaleAddress() || "127.0.0.1";
+}
+
+export function resolvePort(): number {
+  const raw = process.env.SAKIN_PORT ?? "3000";
+  const port = Number(raw);
+  if (!Number.isInteger(port) || port <= 0) {
+    throw new Error(`Invalid SAKIN_PORT: ${raw}`);
+  }
+  return port;
+}
+
+export function resolveHumanEvaluator(): string {
+  const name = process.env.SAKIN_HUMAN_NAME;
+  if (!name || name.trim().length === 0) {
+    throw new Error("SAKIN_HUMAN_NAME must be set to record human evaluations");
+  }
+  return `human:${name}`;
 }

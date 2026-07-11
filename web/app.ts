@@ -1,0 +1,164 @@
+import { Hono } from "hono";
+import { join } from "node:path";
+import { ulid } from "ulid";
+import { resolveHumanEvaluator, sakinPaths } from "../config/env.js";
+import { loadThemeFile } from "../config/themes.js";
+import { openDb, type Verdict, type ReviewFilter } from "../db/adapter.js";
+import { renderCardFragment } from "./card.js";
+import { parseFilterFromQuery } from "./filters.js";
+import { escapeHtml } from "./html.js";
+import { renderDetailPage, renderSwipePage, renderThemePicker } from "./pages.js";
+
+const VALID_VERDICTS: Verdict[] = ["keep", "drop", "maybe"];
+
+function isVerdict(value: unknown): value is Verdict {
+  return typeof value === "string" && (VALID_VERDICTS as string[]).includes(value);
+}
+
+export function createApp() {
+  const app = new Hono();
+  const paths = sakinPaths();
+  const humanEvaluator = resolveHumanEvaluator();
+
+  app.get("/", async (c) => {
+    const db = await openDb(paths.dbFile);
+    try {
+      await db.migrate();
+      const themes = await db.listThemes();
+      if (themes.length === 1) {
+        return c.redirect(`/${encodeURIComponent(themes[0].name)}`);
+      }
+      return c.html(renderThemePicker(themes));
+    } finally {
+      await db.close();
+    }
+  });
+
+  app.get("/:theme", async (c) => {
+    const themeName = c.req.param("theme");
+    const filter = parseFilterFromQuery(c.req.query("filter"));
+    const filterValue = c.req.query("filter") ?? "ai-keep";
+
+    const db = await openDb(paths.dbFile);
+    try {
+      await db.migrate();
+      const card = await db.getNextIdeaForReview(themeName, filter, humanEvaluator, null);
+      const cardHtml = renderCardFragment(themeName, filterValue, card);
+      return c.html(renderSwipePage(themeName, filterValue, cardHtml));
+    } finally {
+      await db.close();
+    }
+  });
+
+  app.get("/:theme/card", async (c) => {
+    const themeName = c.req.param("theme");
+    const filterValue = c.req.query("filter") ?? "ai-keep";
+    const filter = parseFilterFromQuery(filterValue);
+    const after = c.req.query("after") ?? null;
+
+    const db = await openDb(paths.dbFile);
+    try {
+      await db.migrate();
+      const card = await db.getNextIdeaForReview(themeName, filter, humanEvaluator, after);
+      return c.html(renderCardFragment(themeName, filterValue, card));
+    } finally {
+      await db.close();
+    }
+  });
+
+  app.post("/:theme/ideas/:id/verdict", async (c) => {
+    const themeName = c.req.param("theme");
+    const ideaId = c.req.param("id");
+    const filterValue = c.req.query("filter") ?? "ai-keep";
+    const filter = parseFilterFromQuery(filterValue);
+
+    const body = (await c.req.json().catch(() => null)) as { verdict?: unknown } | null;
+    if (!body || !isVerdict(body.verdict)) {
+      return c.text("Invalid verdict", 400);
+    }
+
+    const db = await openDb(paths.dbFile);
+    try {
+      await db.migrate();
+      await db.insertEvaluation({
+        id: ulid(),
+        ideaId,
+        evaluator: humanEvaluator,
+        scores: {},
+        verdict: body.verdict,
+        comment: null,
+        createdAt: new Date().toISOString(),
+      });
+      const next = await db.getNextIdeaForReview(themeName, filter, humanEvaluator, ideaId);
+      return c.html(renderCardFragment(themeName, filterValue, next));
+    } finally {
+      await db.close();
+    }
+  });
+
+  app.get("/:theme/ideas/:id", async (c) => {
+    const themeName = c.req.param("theme");
+    const ideaId = c.req.param("id");
+    const filterValue = c.req.query("filter") ?? "ai-keep";
+
+    const theme = loadThemeFile(join(paths.themesDir, `${themeName}.yaml`));
+    const db = await openDb(paths.dbFile);
+    try {
+      await db.migrate();
+      const card = await db.getReviewCard(themeName, ideaId, humanEvaluator);
+      if (!card) {
+        return c.text("Not found", 404);
+      }
+      return c.html(renderDetailPage(theme, filterValue, card));
+    } finally {
+      await db.close();
+    }
+  });
+
+  app.post("/:theme/ideas/:id/evaluate", async (c) => {
+    const themeName = c.req.param("theme");
+    const ideaId = c.req.param("id");
+    const filterValue = c.req.query("filter") ?? "ai-keep";
+
+    const theme = loadThemeFile(join(paths.themesDir, `${themeName}.yaml`));
+    const form = await c.req.parseBody();
+
+    const scores: Record<string, number> = {};
+    for (const axis of theme.axes) {
+      const raw = form[`axis_${axis.key}`];
+      const value = Number(raw);
+      if (typeof raw !== "string" || !Number.isInteger(value) || value < 1 || value > axis.scale) {
+        return c.text(`Invalid score for axis "${axis.key}"`, 400);
+      }
+      scores[axis.key] = value;
+    }
+
+    const verdict = form.verdict;
+    if (!isVerdict(verdict)) {
+      return c.text("Invalid verdict", 400);
+    }
+    const comment = typeof form.comment === "string" && form.comment.length > 0 ? form.comment : null;
+
+    const db = await openDb(paths.dbFile);
+    try {
+      await db.migrate();
+      await db.insertEvaluation({
+        id: ulid(),
+        ideaId,
+        evaluator: humanEvaluator,
+        scores,
+        verdict,
+        comment,
+        createdAt: new Date().toISOString(),
+      });
+    } finally {
+      await db.close();
+    }
+
+    return c.redirect(`/${encodeURIComponent(themeName)}?filter=${encodeURIComponent(filterValue)}`);
+  });
+
+  app.notFound((c) => c.html(`<p>${escapeHtml("Not found")}</p>`, 404));
+
+  return app;
+}

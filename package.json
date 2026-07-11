@@ -15,7 +15,8 @@
     "db:import": "node dist/db/import.js",
     "db:prune": "node dist/db/prune.js",
     "generate": "node dist/generator/generate.js",
-    "evaluate": "node dist/evaluator/evaluate.js"
+    "evaluate": "node dist/evaluator/evaluate.js",
+    "web": "node dist/web/server.js"
   },
   "devDependencies": {
     "@types/better-sqlite3": "^7.6.13",
@@ -24,7 +25,9 @@
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.111.0",
+    "@hono/node-server": "^2.0.8",
     "better-sqlite3": "^12.11.1",
+    "hono": "^4.12.29",
     "ulid": "^3.0.2",
     "yaml": "^2.9.0"
   }
