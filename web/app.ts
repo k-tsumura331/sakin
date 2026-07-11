@@ -2,10 +2,10 @@ import { Hono } from "hono";
 import { join } from "node:path";
 import { ulid } from "ulid";
 import { resolveHumanEvaluator, sakinPaths } from "../config/env.js";
-import { loadThemeFile } from "../config/themes.js";
-import { openDb, type Verdict, type ReviewFilter } from "../db/adapter.js";
+import { isValidThemeName, loadThemeFile } from "../config/themes.js";
+import { openDb, type Verdict } from "../db/adapter.js";
 import { renderCardFragment } from "./card.js";
-import { parseFilterFromQuery } from "./filters.js";
+import { filterToQueryValue, parseFilterFromQuery } from "./filters.js";
 import { escapeHtml } from "./html.js";
 import { renderDetailPage, renderSwipePage, renderThemePicker } from "./pages.js";
 
@@ -19,6 +19,18 @@ export function createApp() {
   const app = new Hono();
   const paths = sakinPaths();
   const humanEvaluator = resolveHumanEvaluator();
+
+  // Theme names become filesystem paths (SAKIN_HOME/themes/<name>.yaml) and
+  // are embedded in rendered HTML/JS, so every :theme route rejects
+  // anything that doesn't match the same safe charset enforced when a
+  // theme is loaded (config/themes.ts) — before it ever touches a path or
+  // a template.
+  app.use("/:theme/*", async (c, next) => {
+    if (!isValidThemeName(c.req.param("theme"))) {
+      return c.text("Invalid theme name", 400);
+    }
+    await next();
+  });
 
   app.get("/", async (c) => {
     const db = await openDb(paths.dbFile);
@@ -36,8 +48,11 @@ export function createApp() {
 
   app.get("/:theme", async (c) => {
     const themeName = c.req.param("theme");
+    if (!isValidThemeName(themeName)) {
+      return c.text("Invalid theme name", 400);
+    }
     const filter = parseFilterFromQuery(c.req.query("filter"));
-    const filterValue = c.req.query("filter") ?? "ai-keep";
+    const filterValue = filterToQueryValue(filter);
 
     const db = await openDb(paths.dbFile);
     try {
@@ -52,8 +67,8 @@ export function createApp() {
 
   app.get("/:theme/card", async (c) => {
     const themeName = c.req.param("theme");
-    const filterValue = c.req.query("filter") ?? "ai-keep";
-    const filter = parseFilterFromQuery(filterValue);
+    const filter = parseFilterFromQuery(c.req.query("filter"));
+    const filterValue = filterToQueryValue(filter);
     const after = c.req.query("after") ?? null;
 
     const db = await openDb(paths.dbFile);
@@ -69,8 +84,8 @@ export function createApp() {
   app.post("/:theme/ideas/:id/verdict", async (c) => {
     const themeName = c.req.param("theme");
     const ideaId = c.req.param("id");
-    const filterValue = c.req.query("filter") ?? "ai-keep";
-    const filter = parseFilterFromQuery(filterValue);
+    const filter = parseFilterFromQuery(c.req.query("filter"));
+    const filterValue = filterToQueryValue(filter);
 
     const body = (await c.req.json().catch(() => null)) as { verdict?: unknown } | null;
     if (!body || !isVerdict(body.verdict)) {
@@ -99,7 +114,8 @@ export function createApp() {
   app.get("/:theme/ideas/:id", async (c) => {
     const themeName = c.req.param("theme");
     const ideaId = c.req.param("id");
-    const filterValue = c.req.query("filter") ?? "ai-keep";
+    const filter = parseFilterFromQuery(c.req.query("filter"));
+    const filterValue = filterToQueryValue(filter);
 
     const theme = loadThemeFile(join(paths.themesDir, `${themeName}.yaml`));
     const db = await openDb(paths.dbFile);
@@ -118,7 +134,8 @@ export function createApp() {
   app.post("/:theme/ideas/:id/evaluate", async (c) => {
     const themeName = c.req.param("theme");
     const ideaId = c.req.param("id");
-    const filterValue = c.req.query("filter") ?? "ai-keep";
+    const filter = parseFilterFromQuery(c.req.query("filter"));
+    const filterValue = filterToQueryValue(filter);
 
     const theme = loadThemeFile(join(paths.themesDir, `${themeName}.yaml`));
     const form = await c.req.parseBody();
