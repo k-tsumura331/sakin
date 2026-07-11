@@ -12,6 +12,8 @@
     "build": "tsc -p tsconfig.json",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "lint": "eslint .",
+    "pretest": "npm run build",
+    "test": "node --test dist",
     "db:sync-themes": "node dist/db/sync-themes.js",
     "db:import": "node dist/db/import.js",
     "db:prune": "node dist/db/prune.js",
