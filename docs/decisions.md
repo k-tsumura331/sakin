@@ -71,3 +71,9 @@
 - **決定**: ESLint(`eslint.config.js`、typescript-eslintの型情報ありプリセット)を廃止し、Biome(`biome.json`)に一本化した。lintとフォーマットを1ツールで兼ねる。ルールセットは `recommended` プリセット、インデントはスペース2・行幅100・ダブルクォート。
 - **理由**: 開発者(ユーザー)の好みによる乗り換え。Biomeはlint+formatが1バイナリで完結し高速。ESLint運用で必要だった「意図的な非同期外形へのルール除外」(db/adapter.ts、llm/dry-run.ts、`*.test.ts` のfloating-promises)は、Biomeのrecommendedプリセットでは該当ルールが無く、除外設定自体が不要になった。
 - **却下した代替案**: ESLint継続。型情報を使ったより厳密な検査(no-floating-promises等)は失うが、実害のある指摘は乗り換え後の再チェックでも出ておらず、実用上の差は小さいと判断。
+
+## セキュリティ自動化: Dependabot + CodeQL(publicリポジトリの無料枠を利用)
+
+- **決定**: Dependabot alerts(脆弱性通知)と Dependabot security updates(脆弱性修正PR自動作成)をリポジトリ設定で有効化。`.github/dependabot.yml` で npm / github-actions の依存を週次で自動更新PR化。`.github/workflows/codeql.yml` で CodeQL 静的解析を push/PR/週次スケジュールで実行。
+- **理由**: これらはpublicリポジトリなら無料(privateだとCodeQLはGitHub Advanced Securityライセンスが必要)。過去にパストラバーサル・XSSを手動レビューで発見した経緯があり、自動化できる一次検出は仕組み化する。
+- **運用メモ**: CodeQLの結果はmain保護の必須ステータスチェックには含めていない(誤検知のトリアージが必要になり得るため、まずは非ブロッキングの情報源として運用。必要になれば required_status_checks に追加する)。
