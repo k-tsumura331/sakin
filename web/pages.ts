@@ -2,13 +2,13 @@ import type { ReviewCard, ThemeSummary, Verdict } from "../db/adapter.js";
 import type { ThemeDefinition } from "../config/themes.js";
 import { VERDICT_LABEL, verdictBadge } from "./card.js";
 import { FILTER_OPTIONS } from "./filters.js";
-import { escapeHtml, layout } from "./html.js";
+import { escapeHtml, jsonForScript, layout } from "./html.js";
 
 function clientScript(theme: string, filterValue: string): string {
   return `
     <script>
-      const SAKIN_THEME = ${JSON.stringify(theme)};
-      const SAKIN_FILTER = ${JSON.stringify(filterValue)};
+      const SAKIN_THEME = ${jsonForScript(theme)};
+      const SAKIN_FILTER = ${jsonForScript(filterValue)};
 
       async function sakinSwipe(verdict) {
         const container = document.getElementById("card-slot");

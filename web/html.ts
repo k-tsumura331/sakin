@@ -7,6 +7,17 @@ export function escapeHtml(input: string): string {
     .replace(/'/g, "&#39;");
 }
 
+/**
+ * JSON.stringify for embedding inside an inline <script> block. Plain
+ * JSON.stringify doesn't know it's going into HTML, so a value containing
+ * a literal "</script>" would close the tag early and turn the rest of the
+ * string into raw, browser-parsed HTML. Escaping "<" as a JS unicode
+ * escape keeps the value byte-for-byte equivalent once parsed as JS.
+ */
+export function jsonForScript(value: unknown): string {
+  return JSON.stringify(value).replace(/</g, "\\u003C");
+}
+
 const BASE_STYLE = `
   :root { color-scheme: light dark; }
   * { box-sizing: border-box; }

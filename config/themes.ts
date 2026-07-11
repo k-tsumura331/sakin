@@ -19,6 +19,15 @@ export interface ThemeDefinition {
   evaluationNotes: string | null;
 }
 
+// Theme names become filenames (SAKIN_HOME/themes/<name>.yaml) and URL path
+// segments (web/:theme), so they're restricted to a safe, boring charset —
+// this also rules out path traversal ("..", "/") by construction.
+export const THEME_NAME_PATTERN = /^[a-zA-Z0-9_-]+$/;
+
+export function isValidThemeName(name: string): boolean {
+  return THEME_NAME_PATTERN.test(name);
+}
+
 function fail(source: string, message: string): never {
   throw new Error(`Invalid theme definition (${source}): ${message}`);
 }
@@ -50,6 +59,9 @@ export function parseThemeDefinition(source: string, raw: unknown): ThemeDefinit
 
   if (typeof name !== "string" || name.length === 0) {
     fail(source, "name must be a non-empty string");
+  }
+  if (!isValidThemeName(name)) {
+    fail(source, `name must match ${THEME_NAME_PATTERN} (got "${name}")`);
   }
   if (typeof description !== "string" || description.length === 0) {
     fail(source, "description must be a non-empty string");
