@@ -15,6 +15,14 @@ export interface LlmRequest {
   system?: string;
   prompt: string;
   responseHint?: ResponseHint;
+  /**
+   * Caller-supplied mock for DRY_RUN, used instead of the generic
+   * per-hint stub when the expected shape depends on request-specific
+   * data the LLM layer doesn't know about (e.g. an evaluation response
+   * whose keys come from a theme's axis definitions). Ignored by real
+   * backends.
+   */
+  dryRunMock?: unknown;
 }
 
 export interface LlmResponse {
