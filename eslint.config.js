@@ -26,4 +26,15 @@ export default tseslint.config(
       "@typescript-eslint/require-await": "off",
     },
   },
+  {
+    // node:test's test() returns a promise that the test runner itself
+    // awaits/schedules — top-level calls are intentionally not awaited.
+    // Test doubles also commonly implement an async interface without an
+    // await, same as the DB/DRY_RUN exception above.
+    files: ["**/*.test.ts"],
+    rules: {
+      "@typescript-eslint/no-floating-promises": "off",
+      "@typescript-eslint/require-await": "off",
+    },
+  },
 );
