@@ -206,9 +206,7 @@ export async function openDb(dbFile: string): Promise<DbHandle> {
 
     async countIdeasInBatch(themeName, batch) {
       const row = raw
-        .prepare(
-          `SELECT COUNT(*) AS count FROM ideas WHERE theme_name = ? AND batch = ?`,
-        )
+        .prepare(`SELECT COUNT(*) AS count FROM ideas WHERE theme_name = ? AND batch = ?`)
         .get(themeName, batch) as { count: number };
       return row.count;
     },
@@ -316,9 +314,7 @@ export async function openDb(dbFile: string): Promise<DbHandle> {
            ORDER BY ideas.created_at ASC, ideas.id ASC
            LIMIT 1`,
         )
-        .get({ themeName, humanEvaluator, afterId, ...filterParams }) as
-        | ReviewCardRow
-        | undefined;
+        .get({ themeName, humanEvaluator, afterId, ...filterParams }) as ReviewCardRow | undefined;
       return row ? mapReviewCardRow(row) : null;
     },
 

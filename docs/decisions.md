@@ -65,3 +65,9 @@
 - **決定**: mainへの直pushを禁止し、`feature/`, `fix/`, `docs/`, `chore/`, `refactor/`, `test/` + kebab-caseのブランチ命名でPRを作成する。PRタイトルはConventional Commits形式とし、GitHub Actionsのtypecheckが通ることをマージ条件にする。マージはスクワッシュのみ許可し、PRタイトルがそのままコミットメッセージになるようにする。main保護ルールでPRを必須化する。
 - **理由**: public リポジトリとして「ちゃんとやりたい」という要望に応え、一人開発でも変更履歴が追いやすく、CIによる最低限の品質担保(型エラーの検出)を持たせる。スクワッシュマージでmainの履歴を線形かつ意味のある単位に保つ。
 - **却下した代替案**: mainへの直コミット(フェーズ1初期の運用)。公開リポジトリとしての体裁を優先し、途中で切り替えた。マージコミット方式・rebaseマージも検討したが、ソロ開発ではスクワッシュの方が履歴がシンプルになるため不採用。
+
+## リント/フォーマットツール: ESLintからBiomeに乗り換え
+
+- **決定**: ESLint(`eslint.config.js`、typescript-eslintの型情報ありプリセット)を廃止し、Biome(`biome.json`)に一本化した。lintとフォーマットを1ツールで兼ねる。ルールセットは `recommended` プリセット、インデントはスペース2・行幅100・ダブルクォート。
+- **理由**: 開発者(ユーザー)の好みによる乗り換え。Biomeはlint+formatが1バイナリで完結し高速。ESLint運用で必要だった「意図的な非同期外形へのルール除外」(db/adapter.ts、llm/dry-run.ts、`*.test.ts` のfloating-promises)は、Biomeのrecommendedプリセットでは該当ルールが無く、除外設定自体が不要になった。
+- **却下した代替案**: ESLint継続。型情報を使ったより厳密な検査(no-floating-promises等)は失うが、実害のある指摘は乗り換え後の再チェックでも出ておらず、実用上の差は小さいと判断。

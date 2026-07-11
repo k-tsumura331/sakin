@@ -26,9 +26,7 @@ export type LlmBackend = "claude-cli" | "anthropic-api";
 export function resolveLlmBackend(): LlmBackend {
   const raw = process.env.SAKIN_LLM_BACKEND ?? "claude-cli";
   if (raw !== "claude-cli" && raw !== "anthropic-api") {
-    throw new Error(
-      `Unknown SAKIN_LLM_BACKEND: ${raw} (expected "claude-cli" or "anthropic-api")`,
-    );
+    throw new Error(`Unknown SAKIN_LLM_BACKEND: ${raw} (expected "claude-cli" or "anthropic-api")`);
   }
   return raw;
 }

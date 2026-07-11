@@ -37,7 +37,9 @@ test("retries on invalid JSON and succeeds once a good response arrives", async 
 
 test("throws after exhausting all retries", async () => {
   const client = fakeClient(["not json"]);
-  await assert.rejects(() => completeJson(client, { role: "generate", prompt: "x" }, 2, passthrough));
+  await assert.rejects(() =>
+    completeJson(client, { role: "generate", prompt: "x" }, 2, passthrough),
+  );
 });
 
 test("throws when the validator rejects the parsed value", async () => {
@@ -45,5 +47,7 @@ test("throws when the validator rejects the parsed value", async () => {
   const strictValidator = () => {
     throw new Error("always invalid");
   };
-  await assert.rejects(() => completeJson(client, { role: "generate", prompt: "x" }, 0, strictValidator));
+  await assert.rejects(() =>
+    completeJson(client, { role: "generate", prompt: "x" }, 0, strictValidator),
+  );
 });

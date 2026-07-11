@@ -1,7 +1,13 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import type { ThemeDefinition } from "../config/themes.js";
-import { openDb, type DbHandle, type EvaluationRecord, type IdeaRecord, type Verdict } from "./adapter.js";
+import {
+  type DbHandle,
+  type EvaluationRecord,
+  type IdeaRecord,
+  openDb,
+  type Verdict,
+} from "./adapter.js";
 
 const THEME: ThemeDefinition = {
   name: "example-service",
@@ -118,10 +124,20 @@ test("getNextIdeaForReview: ai-keep only returns ideas whose latest AI verdict i
     await db.insertEvaluation(evaluation("01", "ai:model-a", "keep"));
     await db.insertEvaluation(evaluation("02", "ai:model-a", "maybe"));
 
-    const card = await db.getNextIdeaForReview(THEME.name, { type: "ai-keep" }, "human:tester", null);
+    const card = await db.getNextIdeaForReview(
+      THEME.name,
+      { type: "ai-keep" },
+      "human:tester",
+      null,
+    );
     assert.equal(card?.id, "01");
 
-    const next = await db.getNextIdeaForReview(THEME.name, { type: "ai-keep" }, "human:tester", "01");
+    const next = await db.getNextIdeaForReview(
+      THEME.name,
+      { type: "ai-keep" },
+      "human:tester",
+      "01",
+    );
     assert.equal(next, null);
   } finally {
     await db.close();
@@ -211,8 +227,12 @@ test("getNextIdeaForReview: re-evaluation supersedes the earlier verdict (latest
   const db = await freshDb();
   try {
     await db.insertIdeaIfAbsent(idea("01"));
-    await db.insertEvaluation(evaluation("01", "human:tester", "drop", { createdAt: "2026-01-01T00:00:00.000Z" }));
-    await db.insertEvaluation(evaluation("01", "human:tester", "keep", { createdAt: "2026-01-01T01:00:00.000Z" }));
+    await db.insertEvaluation(
+      evaluation("01", "human:tester", "drop", { createdAt: "2026-01-01T00:00:00.000Z" }),
+    );
+    await db.insertEvaluation(
+      evaluation("01", "human:tester", "keep", { createdAt: "2026-01-01T01:00:00.000Z" }),
+    );
 
     const card = await db.getReviewCard(THEME.name, "01", "human:tester");
     assert.equal(card?.humanVerdict, "keep");

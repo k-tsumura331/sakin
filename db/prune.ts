@@ -1,5 +1,5 @@
-import { openDb } from "./adapter.js";
 import { sakinPaths } from "../config/env.js";
+import { openDb } from "./adapter.js";
 
 interface PruneArgs {
   theme: string;

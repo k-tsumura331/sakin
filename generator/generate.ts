@@ -8,7 +8,12 @@ import {
   sakinPaths,
 } from "../config/env.js";
 import { loadThemeFile, type ThemeDefinition } from "../config/themes.js";
-import { completeJson, createLlmClient, estimateCostUsd, LlmQuotaExceededError } from "../llm/index.js";
+import {
+  completeJson,
+  createLlmClient,
+  estimateCostUsd,
+  LlmQuotaExceededError,
+} from "../llm/index.js";
 import { buildCombos, pickCombo } from "./combos.js";
 
 interface GenerateArgs {
@@ -133,7 +138,10 @@ async function main() {
 
   let seedTerms: { near: string[]; far: string[] };
   if (existsSync(seedTermsPath)) {
-    seedTerms = JSON.parse(readFileSync(seedTermsPath, "utf8")) as { near: string[]; far: string[] };
+    seedTerms = JSON.parse(readFileSync(seedTermsPath, "utf8")) as {
+      near: string[];
+      far: string[];
+    };
     console.log(
       `Reusing cached seed terms (${seedTerms.near.length} near / ${seedTerms.far.length} far)`,
     );
