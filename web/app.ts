@@ -11,8 +11,9 @@ import { renderDetailPage, renderSwipePage, renderThemePicker } from "./pages.js
 import { createRateLimiter } from "./rate-limit.js";
 
 // Backstop against a runaway client/script hammering the two mutating
-// routes, not per-user fairness (see web/rate-limit.ts).
-const WRITE_RATE_LIMIT = { windowMs: 60_000, max: 300 };
+// routes, not per-user fairness (see web/rate-limit.ts). One shared
+// instance so both routes draw from the same budget/window.
+const writeRateLimiter = createRateLimiter({ windowMs: 60_000, max: 300 });
 
 const VALID_VERDICTS: Verdict[] = ["keep", "drop", "maybe"];
 
@@ -86,7 +87,7 @@ export function createApp() {
     }
   });
 
-  app.post("/:theme/ideas/:id/verdict", createRateLimiter(WRITE_RATE_LIMIT), async (c) => {
+  app.post("/:theme/ideas/:id/verdict", writeRateLimiter, async (c) => {
     const themeName = c.req.param("theme");
     const ideaId = c.req.param("id");
     const filter = parseFilterFromQuery(c.req.query("filter"));
@@ -139,7 +140,7 @@ export function createApp() {
     }
   });
 
-  app.post("/:theme/ideas/:id/evaluate", createRateLimiter(WRITE_RATE_LIMIT), async (c) => {
+  app.post("/:theme/ideas/:id/evaluate", writeRateLimiter, async (c) => {
     const themeName = c.req.param("theme");
     const ideaId = c.req.param("id");
     const filter = parseFilterFromQuery(c.req.query("filter"));

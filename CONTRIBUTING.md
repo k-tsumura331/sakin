@@ -95,7 +95,7 @@ npm run build       # dist/ へコンパイル
 ### テスト方針
 
 - テストランナーは Node.js 標準の `node:test` / `node:assert`(追加の依存なし、このプロジェクトの「依存は最小限に」という方針に合わせている)
-- テストファイルは対象コードと同じディレクトリに `*.test.ts` として置く(例: `db/adapter.test.ts`)。ビルド後 `dist/` 配下に生成され、`npm test`(`node --test "dist/**/*.test.js"`)が検出する
+- テストファイルは対象コードと同じディレクトリに `*.test.ts` として置く(例: `db/adapter.test.ts`)。ビルド後 `dist/` 配下に生成され、`npm test`(`node --test dist`)が再帰的に検出する
 - 優先してテストを書く対象: バリデーションロジック(`config/themes.ts`)、DB層の複雑なクエリ(`db/adapter.ts`、`:memory:`/一時ファイルSQLiteで実施)、決定的アルゴリズム(`generator/combos.ts`)、リトライ処理(`llm/json.ts`)、セキュリティ修正の回帰防止(`web/html.ts` のエスケープ処理など)
 - 外部プロセス・ネットワークに依存するコードも、実体を薄いスタブ/モックに差し替えて検証している: `llm/claude-cli.ts` はPATH上にダミーの `claude` 実行ファイルを立てて、`llm/anthropic-api.ts` は `globalThis.fetch` を差し替えて(SDKはカスタムfetch未指定時グローバルfetchにフォールバックする)、それぞれ本物の spawn/HTTP 経路を通す
 - `web/app.ts` のルーティングは Hono の `app.request()` で一時SQLiteファイル+一時テーマディレクトリに対して統合テストする(`web/app.test.ts`)
