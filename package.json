@@ -13,7 +13,8 @@
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "db:sync-themes": "node dist/db/sync-themes.js",
     "db:import": "node dist/db/import.js",
-    "db:prune": "node dist/db/prune.js"
+    "db:prune": "node dist/db/prune.js",
+    "generate": "node dist/generator/generate.js"
   },
   "devDependencies": {
     "@types/better-sqlite3": "^7.6.13",
