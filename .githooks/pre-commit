@@ -1,0 +1,9 @@
+#!/bin/sh
+# Enable with: git config core.hooksPath .githooks
+# Mirrors the CI jobs (typecheck/lint/test) so a broken commit is caught
+# locally instead of after pushing.
+set -e
+
+npm run typecheck
+npm run lint
+npm test

@@ -8,6 +8,11 @@ import { renderCardFragment } from "./card.js";
 import { filterToQueryValue, parseFilterFromQuery } from "./filters.js";
 import { escapeHtml } from "./html.js";
 import { renderDetailPage, renderSwipePage, renderThemePicker } from "./pages.js";
+import { createRateLimiter } from "./rate-limit.js";
+
+// Backstop against a runaway client/script hammering the two mutating
+// routes, not per-user fairness (see web/rate-limit.ts).
+const WRITE_RATE_LIMIT = { windowMs: 60_000, max: 300 };
 
 const VALID_VERDICTS: Verdict[] = ["keep", "drop", "maybe"];
 
@@ -81,7 +86,7 @@ export function createApp() {
     }
   });
 
-  app.post("/:theme/ideas/:id/verdict", async (c) => {
+  app.post("/:theme/ideas/:id/verdict", createRateLimiter(WRITE_RATE_LIMIT), async (c) => {
     const themeName = c.req.param("theme");
     const ideaId = c.req.param("id");
     const filter = parseFilterFromQuery(c.req.query("filter"));
@@ -95,6 +100,9 @@ export function createApp() {
     const db = await openDb(paths.dbFile);
     try {
       await db.migrate();
+      if (!(await db.ideaExists(themeName, ideaId))) {
+        return c.text("Not found", 404);
+      }
       await db.insertEvaluation({
         id: ulid(),
         ideaId,
@@ -131,7 +139,7 @@ export function createApp() {
     }
   });
 
-  app.post("/:theme/ideas/:id/evaluate", async (c) => {
+  app.post("/:theme/ideas/:id/evaluate", createRateLimiter(WRITE_RATE_LIMIT), async (c) => {
     const themeName = c.req.param("theme");
     const ideaId = c.req.param("id");
     const filter = parseFilterFromQuery(c.req.query("filter"));
@@ -160,6 +168,9 @@ export function createApp() {
     const db = await openDb(paths.dbFile);
     try {
       await db.migrate();
+      if (!(await db.ideaExists(themeName, ideaId))) {
+        return c.text("Not found", 404);
+      }
       await db.insertEvaluation({
         id: ulid(),
         ideaId,
@@ -179,6 +190,15 @@ export function createApp() {
   });
 
   app.notFound((c) => c.html(`<p>${escapeHtml("Not found")}</p>`, 404));
+
+  // Without this, an unexpected exception (e.g. a malformed theme YAML, a
+  // DB error) falls through to Hono's default handler, which echoes the raw
+  // error message/stack to the client. This tool has no auth, so keep
+  // internals server-side and log them instead.
+  app.onError((err, c) => {
+    console.error(err);
+    return c.text("Internal error", 500);
+  });
 
   return app;
 }
