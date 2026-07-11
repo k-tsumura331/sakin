@@ -69,6 +69,10 @@ Mass-generate ideas on a narrow theme with cheap AI models, triage them with AI 
 - 実テーマ・生成データ・DBは `SAKIN_HOME`(デフォルト `~/sakin-data`)に置き、リポジトリには一切含めない。`.gitignore` は二重の保険
 - Web UIは認証を持たない。bindアドレスはデフォルトで Tailscale インターフェース(検出できなければ 127.0.0.1)に限定する
 
+## デプロイ
+
+Mac mini + launchd での起動を想定。`deploy/com.sakin.web.plist.example` をひな形として使う(パス・環境変数は要編集)。デプロイ自動化はフェーズ1のスコープ外。
+
 ## 開発フロー
 
 - mainへの直pushはしない。ブランチ(`feature/`, `fix/`, `docs/`, `chore/`, `refactor/`, `test/` + kebab-case)を切ってPRを作成し、CI(typecheck)を通してからスクワッシュマージする
