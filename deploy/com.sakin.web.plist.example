@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN"
+  "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  Mac mini launchd sample for the sakin web UI.
+
+  Usage:
+    1. cp deploy/com.sakin.web.plist.example ~/Library/LaunchAgents/com.sakin.web.plist
+    2. Edit the paths below (node binary, repo checkout, SAKIN_HOME, SAKIN_HUMAN_NAME)
+    3. launchctl bootstrap gui/$(id -u) ~/Library/LaunchAgents/com.sakin.web.plist
+    4. launchctl print gui/$(id -u)/com.sakin.web to check status;
+       logs go to the paths in StandardOutPath/StandardErrorPath below.
+
+  This is a starting point, not a turnkey deploy script — adjust to taste.
+-->
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>com.sakin.web</string>
+
+  <key>ProgramArguments</key>
+  <array>
+    <string>/usr/local/bin/node</string>
+    <string>/path/to/sakin/dist/web/server.js</string>
+  </array>
+
+  <key>WorkingDirectory</key>
+  <string>/path/to/sakin</string>
+
+  <key>EnvironmentVariables</key>
+  <dict>
+    <key>SAKIN_HOME</key>
+    <string>/Users/yourname/sakin-data</string>
+    <key>SAKIN_HUMAN_NAME</key>
+    <string>yourname</string>
+    <key>SAKIN_LLM_BACKEND</key>
+    <string>claude-cli</string>
+  </dict>
+
+  <key>RunAtLoad</key>
+  <true/>
+  <key>KeepAlive</key>
+  <true/>
+
+  <key>StandardOutPath</key>
+  <string>/tmp/sakin-web.log</string>
+  <key>StandardErrorPath</key>
+  <string>/tmp/sakin-web.error.log</string>
+</dict>
+</plist>
