@@ -1,5 +1,5 @@
 name: example-service
-description: サンプル: 架空テーマ「週末キャンパー向けの新規サービス」
+description: "サンプル: 架空テーマ「週末キャンパー向けの新規サービス」"
 axes:
   - { key: novelty, label: 新規性, scale: 5 }
   - { key: clarity, label: 具体性, scale: 5 }

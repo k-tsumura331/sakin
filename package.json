@@ -10,10 +10,19 @@
   },
   "scripts": {
     "build": "tsc -p tsconfig.json",
-    "typecheck": "tsc -p tsconfig.json --noEmit"
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "db:sync-themes": "node dist/db/sync-themes.js",
+    "db:import": "node dist/db/import.js",
+    "db:prune": "node dist/db/prune.js"
   },
   "devDependencies": {
-    "typescript": "^5.5.4",
-    "@types/node": "^20.14.0"
+    "@types/better-sqlite3": "^7.6.13",
+    "@types/node": "^20.14.0",
+    "typescript": "^5.5.4"
+  },
+  "dependencies": {
+    "better-sqlite3": "^12.11.1",
+    "ulid": "^3.0.2",
+    "yaml": "^2.9.0"
   }
 }
