@@ -1,0 +1,19 @@
+name: example-service
+description: サンプル: 架空テーマ「週末キャンパー向けの新規サービス」
+axes:
+  - { key: novelty, label: 新規性, scale: 5 }
+  - { key: clarity, label: 具体性, scale: 5 }
+  - { key: pain, label: 課題の切実さ, scale: 5 }
+  - { key: feasibility, label: 実現性, scale: 5 }
+  - { key: monetization, label: 収益筋, scale: 5 }
+seed_policy:
+  near_terms_prompt: |
+    「週末キャンパー向けの新規サービス」というテーマに直接関連する用語を20個挙げてください。
+    キャンプ用品、アウトドア体験、車中泊、グランピングなど、テーマに近い分野から選ぶこと。
+  far_terms_prompt: |
+    「週末キャンパー向けの新規サービス」というテーマから一見遠い分野の用語を20個挙げてください。
+    金融、教育、医療、農業など、意外な組み合わせから新規性のある案が生まれることを狙う。
+evaluation_notes: |
+  法規制(古物営業法、旅行業法など)に抵触しそうな案は feasibility を1点にし、
+  verdict は drop にすること。
+  実現までに大規模な資本(数億円規模の設備投資など)が必須な案は feasibility を低めに。

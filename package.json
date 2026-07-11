@@ -1,0 +1,19 @@
+{
+  "name": "sakin",
+  "version": "0.1.0",
+  "description": "Mass-generate ideas on a narrow theme with cheap AI models, triage with AI scoring, swipe-review the survivors.",
+  "private": true,
+  "license": "MIT",
+  "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "devDependencies": {
+    "typescript": "^5.5.4",
+    "@types/node": "^20.14.0"
+  }
+}
