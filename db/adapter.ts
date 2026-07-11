@@ -13,6 +13,17 @@ export interface IdeaRecord {
   createdAt: string;
 }
 
+export interface IdeaRow {
+  id: string;
+  themeName: string;
+  seedTerms: string[];
+  title: string;
+  body: string;
+  model: string;
+  batch: string;
+  createdAt: string;
+}
+
 export type Verdict = "keep" | "drop" | "maybe";
 
 export interface EvaluationRecord {
@@ -31,6 +42,8 @@ export interface DbHandle {
   insertIdeaIfAbsent(idea: IdeaRecord): Promise<boolean>;
   countIdeasInBatch(themeName: string, batch: string): Promise<number>;
   pruneUnevaluatedBatch(themeName: string, batch: string): Promise<number>;
+  countUnevaluatedIdeas(themeName: string, evaluator: string): Promise<number>;
+  listUnevaluatedIdeas(themeName: string, evaluator: string, limit: number): Promise<IdeaRow[]>;
   insertEvaluation(evaluation: EvaluationRecord): Promise<void>;
   close(): Promise<void>;
 }
@@ -102,6 +115,55 @@ export async function openDb(dbFile: string): Promise<DbHandle> {
         )
         .run({ themeName, batch });
       return result.changes;
+    },
+
+    async countUnevaluatedIdeas(themeName, evaluator) {
+      const row = raw
+        .prepare(
+          `SELECT COUNT(*) AS count FROM ideas
+           WHERE theme_name = @themeName
+             AND NOT EXISTS (
+               SELECT 1 FROM evaluations
+               WHERE evaluations.idea_id = ideas.id AND evaluations.evaluator = @evaluator
+             )`,
+        )
+        .get({ themeName, evaluator }) as { count: number };
+      return row.count;
+    },
+
+    async listUnevaluatedIdeas(themeName, evaluator, limit) {
+      const rows = raw
+        .prepare(
+          `SELECT id, theme_name, seed_terms_json, title, body, model, batch, created_at
+           FROM ideas
+           WHERE theme_name = @themeName
+             AND NOT EXISTS (
+               SELECT 1 FROM evaluations
+               WHERE evaluations.idea_id = ideas.id AND evaluations.evaluator = @evaluator
+             )
+           ORDER BY created_at ASC
+           LIMIT @limit`,
+        )
+        .all({ themeName, evaluator, limit }) as Array<{
+        id: string;
+        theme_name: string;
+        seed_terms_json: string;
+        title: string;
+        body: string;
+        model: string;
+        batch: string;
+        created_at: string;
+      }>;
+      return rows.map((row) => ({
+        id: row.id,
+        themeName: row.theme_name,
+        seedTerms: JSON.parse(row.seed_terms_json) as string[],
+        title: row.title,
+        body: row.body,
+        model: row.model,
+        batch: row.batch,
+        createdAt: row.created_at,
+      }));
     },
 
     async insertEvaluation(evaluation) {

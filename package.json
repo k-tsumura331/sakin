@@ -14,7 +14,8 @@
     "db:sync-themes": "node dist/db/sync-themes.js",
     "db:import": "node dist/db/import.js",
     "db:prune": "node dist/db/prune.js",
-    "generate": "node dist/generator/generate.js"
+    "generate": "node dist/generator/generate.js",
+    "evaluate": "node dist/evaluator/evaluate.js"
   },
   "devDependencies": {
     "@types/better-sqlite3": "^7.6.13",

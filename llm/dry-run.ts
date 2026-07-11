@@ -22,6 +22,9 @@ export function createDryRunClient(underlyingBackend: string): LlmClient {
   return {
     backend: `${underlyingBackend} (dry-run)`,
     async complete(request: LlmRequest): Promise<LlmResponse> {
+      if (request.dryRunMock !== undefined) {
+        return { text: JSON.stringify(request.dryRunMock) };
+      }
       const hint = request.responseHint ?? DEFAULT_HINT_BY_ROLE[request.role];
       return { text: MOCK_RESPONSES[hint] };
     },
