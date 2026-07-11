@@ -26,6 +26,29 @@ export interface IdeaRow {
 
 export type Verdict = "keep" | "drop" | "maybe";
 
+export type ReviewFilter =
+  | { type: "ai-keep" }
+  | { type: "human-unevaluated" }
+  | { type: "disagreement" }
+  | { type: "human-verdict"; verdict: Verdict };
+
+export interface ThemeSummary {
+  name: string;
+  description: string;
+}
+
+export interface ReviewCard {
+  id: string;
+  themeName: string;
+  seedTerms: string[];
+  title: string;
+  body: string;
+  aiVerdict: Verdict | null;
+  humanVerdict: Verdict | null;
+  humanScores: Record<string, number> | null;
+  humanComment: string | null;
+}
+
 export interface EvaluationRecord {
   id: string;
   ideaId: string;
@@ -45,7 +68,92 @@ export interface DbHandle {
   countUnevaluatedIdeas(themeName: string, evaluator: string): Promise<number>;
   listUnevaluatedIdeas(themeName: string, evaluator: string, limit: number): Promise<IdeaRow[]>;
   insertEvaluation(evaluation: EvaluationRecord): Promise<void>;
+  listThemes(): Promise<ThemeSummary[]>;
+  getNextIdeaForReview(
+    themeName: string,
+    filter: ReviewFilter,
+    humanEvaluator: string,
+    afterId: string | null,
+  ): Promise<ReviewCard | null>;
+  getReviewCard(
+    themeName: string,
+    ideaId: string,
+    humanEvaluator: string,
+  ): Promise<ReviewCard | null>;
   close(): Promise<void>;
+}
+
+const REVIEW_CARD_BASE_QUERY = `
+  WITH latest_ai AS (
+    SELECT idea_id, verdict,
+           ROW_NUMBER() OVER (PARTITION BY idea_id ORDER BY created_at DESC, id DESC) AS rn
+    FROM evaluations
+    WHERE evaluator LIKE 'ai:%'
+  ),
+  latest_human AS (
+    SELECT idea_id, verdict, scores_json, comment,
+           ROW_NUMBER() OVER (PARTITION BY idea_id ORDER BY created_at DESC, id DESC) AS rn
+    FROM evaluations
+    WHERE evaluator = @humanEvaluator
+  )
+  SELECT
+    ideas.id AS id,
+    ideas.theme_name AS theme_name,
+    ideas.seed_terms_json AS seed_terms_json,
+    ideas.title AS title,
+    ideas.body AS body,
+    la.verdict AS ai_verdict,
+    lh.verdict AS human_verdict,
+    lh.scores_json AS human_scores_json,
+    lh.comment AS human_comment
+  FROM ideas
+  LEFT JOIN latest_ai la ON la.idea_id = ideas.id AND la.rn = 1
+  LEFT JOIN latest_human lh ON lh.idea_id = ideas.id AND lh.rn = 1
+  WHERE ideas.theme_name = @themeName
+`;
+
+interface ReviewCardRow {
+  id: string;
+  theme_name: string;
+  seed_terms_json: string;
+  title: string;
+  body: string;
+  ai_verdict: Verdict | null;
+  human_verdict: Verdict | null;
+  human_scores_json: string | null;
+  human_comment: string | null;
+}
+
+function mapReviewCardRow(row: ReviewCardRow): ReviewCard {
+  return {
+    id: row.id,
+    themeName: row.theme_name,
+    seedTerms: JSON.parse(row.seed_terms_json) as string[],
+    title: row.title,
+    body: row.body,
+    aiVerdict: row.ai_verdict,
+    humanVerdict: row.human_verdict,
+    humanScores: row.human_scores_json
+      ? (JSON.parse(row.human_scores_json) as Record<string, number>)
+      : null,
+    humanComment: row.human_comment,
+  };
+}
+
+function filterPredicate(filter: ReviewFilter): { sql: string; params: Record<string, unknown> } {
+  switch (filter.type) {
+    case "ai-keep":
+      return { sql: "AND la.verdict = 'keep'", params: {} };
+    case "human-unevaluated":
+      return { sql: "AND lh.verdict IS NULL", params: {} };
+    case "disagreement":
+      return {
+        sql: "AND la.verdict IS NOT NULL AND lh.verdict IS NOT NULL AND la.verdict <> lh.verdict",
+        params: {},
+      };
+    case "human-verdict":
+      return { sql: "AND lh.verdict = @filterVerdict", params: { filterVerdict: filter.verdict } };
+  }
 }
 
 export async function openDb(dbFile: string): Promise<DbHandle> {
@@ -182,6 +290,43 @@ export async function openDb(dbFile: string): Promise<DbHandle> {
           comment: evaluation.comment,
           createdAt: evaluation.createdAt,
         });
+    },
+
+    async listThemes() {
+      return raw
+        .prepare(`SELECT name, description FROM themes ORDER BY name ASC`)
+        .all() as ThemeSummary[];
+    },
+
+    async getNextIdeaForReview(themeName, filter, humanEvaluator, afterId) {
+      const { sql: filterSql, params: filterParams } = filterPredicate(filter);
+      const cursorSql = `
+        AND (
+          @afterId IS NULL
+          OR ideas.created_at > (SELECT created_at FROM ideas WHERE id = @afterId)
+          OR (
+            ideas.created_at = (SELECT created_at FROM ideas WHERE id = @afterId)
+            AND ideas.id > @afterId
+          )
+        )
+      `;
+      const row = raw
+        .prepare(
+          `${REVIEW_CARD_BASE_QUERY} ${filterSql} ${cursorSql}
+           ORDER BY ideas.created_at ASC, ideas.id ASC
+           LIMIT 1`,
+        )
+        .get({ themeName, humanEvaluator, afterId, ...filterParams }) as
+        | ReviewCardRow
+        | undefined;
+      return row ? mapReviewCardRow(row) : null;
+    },
+
+    async getReviewCard(themeName, ideaId, humanEvaluator) {
+      const row = raw
+        .prepare(`${REVIEW_CARD_BASE_QUERY} AND ideas.id = @ideaId LIMIT 1`)
+        .get({ themeName, humanEvaluator, ideaId }) as ReviewCardRow | undefined;
+      return row ? mapReviewCardRow(row) : null;
     },
 
     async close() {
