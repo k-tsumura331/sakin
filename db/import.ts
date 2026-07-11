@@ -1,7 +1,7 @@
 import { createReadStream } from "node:fs";
 import { createInterface } from "node:readline";
-import { openDb, type IdeaRecord } from "./adapter.js";
 import { sakinPaths } from "../config/env.js";
+import { type IdeaRecord, openDb } from "./adapter.js";
 
 function parseIdeaLine(source: string, lineNumber: number, line: string): IdeaRecord {
   let raw: unknown;
@@ -13,8 +13,10 @@ function parseIdeaLine(source: string, lineNumber: number, line: string): IdeaRe
   if (typeof raw !== "object" || raw === null) {
     throw new Error(`${source}:${lineNumber}: must be a JSON object`);
   }
-  const { id, theme, seed_terms, title, body, model, batch, created_at } =
-    raw as Record<string, unknown>;
+  const { id, theme, seed_terms, title, body, model, batch, created_at } = raw as Record<
+    string,
+    unknown
+  >;
 
   const missing = [
     ["id", id],

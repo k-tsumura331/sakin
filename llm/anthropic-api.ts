@@ -17,7 +17,7 @@ export function createAnthropicApiClient(): LlmClient {
           messages: [{ role: "user", content: request.prompt }],
         });
         const textBlock = response.content.find((block) => block.type === "text");
-        if (!textBlock || textBlock.type !== "text") {
+        if (textBlock?.type !== "text") {
           throw new Error("Anthropic API response contained no text block");
         }
         return { text: textBlock.text };

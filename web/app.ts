@@ -1,5 +1,5 @@
-import { Hono } from "hono";
 import { join } from "node:path";
+import { Hono } from "hono";
 import { ulid } from "ulid";
 import { resolveHumanEvaluator, sakinPaths } from "../config/env.js";
 import { isValidThemeName, loadThemeFile } from "../config/themes.js";
@@ -154,7 +154,8 @@ export function createApp() {
     if (!isVerdict(verdict)) {
       return c.text("Invalid verdict", 400);
     }
-    const comment = typeof form.comment === "string" && form.comment.length > 0 ? form.comment : null;
+    const comment =
+      typeof form.comment === "string" && form.comment.length > 0 ? form.comment : null;
 
     const db = await openDb(paths.dbFile);
     try {
@@ -172,7 +173,9 @@ export function createApp() {
       await db.close();
     }
 
-    return c.redirect(`/${encodeURIComponent(themeName)}?filter=${encodeURIComponent(filterValue)}`);
+    return c.redirect(
+      `/${encodeURIComponent(themeName)}?filter=${encodeURIComponent(filterValue)}`,
+    );
   });
 
   app.notFound((c) => c.html(`<p>${escapeHtml("Not found")}</p>`, 404));

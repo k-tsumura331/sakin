@@ -1,6 +1,6 @@
+import { sakinPaths } from "../config/env.js";
 import { loadThemesDir } from "../config/themes.js";
 import { openDb } from "./adapter.js";
-import { sakinPaths } from "../config/env.js";
 
 export async function syncThemes(themesDir: string, dbFile: string): Promise<string[]> {
   const themes = loadThemesDir(themesDir);

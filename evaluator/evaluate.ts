@@ -1,3 +1,4 @@
+import { join } from "node:path";
 import { ulid } from "ulid";
 import {
   resolveApiModelId,
@@ -6,9 +7,13 @@ import {
   sakinPaths,
 } from "../config/env.js";
 import { loadThemeFile, type ThemeDefinition } from "../config/themes.js";
-import { openDb, type IdeaRow, type Verdict } from "../db/adapter.js";
-import { join } from "node:path";
-import { completeJson, createLlmClient, estimateCostUsd, LlmQuotaExceededError } from "../llm/index.js";
+import { type IdeaRow, openDb, type Verdict } from "../db/adapter.js";
+import {
+  completeJson,
+  createLlmClient,
+  estimateCostUsd,
+  LlmQuotaExceededError,
+} from "../llm/index.js";
 
 const DEFAULT_LIMIT = 100;
 
@@ -96,10 +101,7 @@ function buildEvaluationPrompt(theme: ThemeDefinition, idea: IdeaRow): string {
   const axesDescription = theme.axes
     .map((axis) => `- ${axis.key} (${axis.label}): 1〜${axis.scale}の整数`)
     .join("\n");
-  const lines = [
-    `テーマ: ${theme.description}`,
-    `評価軸:\n${axesDescription}`,
-  ];
+  const lines = [`テーマ: ${theme.description}`, `評価軸:\n${axesDescription}`];
   if (theme.evaluationNotes) {
     lines.push(`採点時の注意:\n${theme.evaluationNotes}`);
   }
@@ -142,7 +144,9 @@ async function main() {
     console.log(`Evaluator: ${evaluatorLabel}`);
     console.log(`Backend: ${backend}`);
     console.log(`Unevaluated ideas: ${totalUnevaluated}`);
-    console.log(`Will evaluate: ${effectiveLimit}${args.all ? " (--all)" : ` (limit ${args.limit})`}`);
+    console.log(
+      `Will evaluate: ${effectiveLimit}${args.all ? " (--all)" : ` (limit ${args.limit})`}`,
+    );
     if (!args.all && totalUnevaluated > args.limit) {
       console.log(
         `Note: ${totalUnevaluated - args.limit} idea(s) will remain unevaluated this run. Use --all or a higher --limit to process more.`,

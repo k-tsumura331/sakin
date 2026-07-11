@@ -1,5 +1,5 @@
-import type { ReviewCard, ThemeSummary, Verdict } from "../db/adapter.js";
 import type { ThemeDefinition } from "../config/themes.js";
+import type { ReviewCard, ThemeSummary, Verdict } from "../db/adapter.js";
 import { VERDICT_LABEL, verdictBadge } from "./card.js";
 import { FILTER_OPTIONS } from "./filters.js";
 import { escapeHtml, jsonForScript, layout } from "./html.js";
@@ -72,7 +72,11 @@ function clientScript(theme: string, filterValue: string): string {
   `;
 }
 
-export function renderSwipePage(theme: string, filterValue: string, initialCardHtml: string): string {
+export function renderSwipePage(
+  theme: string,
+  filterValue: string,
+  initialCardHtml: string,
+): string {
   const optionsHtml = FILTER_OPTIONS.map(
     (opt) =>
       `<option value="${escapeHtml(opt.value)}" ${opt.value === filterValue ? "selected" : ""}>${escapeHtml(opt.label)}</option>`,
