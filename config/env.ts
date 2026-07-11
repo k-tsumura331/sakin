@@ -32,3 +32,30 @@ export function resolveLlmBackend(): LlmBackend {
   }
   return raw;
 }
+
+export type ModelRole = "generate" | "evaluate";
+
+const DEFAULT_API_MODEL_IDS: Record<ModelRole, string> = {
+  generate: "claude-haiku-4-5",
+  evaluate: "claude-sonnet-5",
+};
+
+const DEFAULT_CLI_MODEL_ALIASES: Record<ModelRole, string> = {
+  generate: "haiku",
+  evaluate: "sonnet",
+};
+
+export function resolveApiModelId(role: ModelRole): string {
+  const envKey = role === "generate" ? "SAKIN_MODEL_GENERATE" : "SAKIN_MODEL_EVALUATE";
+  return process.env[envKey] ?? DEFAULT_API_MODEL_IDS[role];
+}
+
+export function resolveCliModelAlias(role: ModelRole): string {
+  const envKey = role === "generate" ? "SAKIN_CLI_MODEL_GENERATE" : "SAKIN_CLI_MODEL_EVALUATE";
+  return process.env[envKey] ?? DEFAULT_CLI_MODEL_ALIASES[role];
+}
+
+export function isDryRun(): boolean {
+  const raw = process.env.SAKIN_DRY_RUN;
+  return raw === "1" || raw === "true";
+}
