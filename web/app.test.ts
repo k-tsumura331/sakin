@@ -98,12 +98,13 @@ test("GET /:theme/* rejects a theme name outside the safe charset via the shared
   }
 });
 
-test("GET / redirects straight to the only theme", async () => {
+test("GET / shows a theme picker even when there is only one theme", async () => {
   const { app, cleanup } = await setupFixture();
   try {
     const res = await app.request("/");
-    assert.equal(res.status, 302);
-    assert.equal(res.headers.get("location"), "/example-service");
+    assert.equal(res.status, 200);
+    const body = await res.text();
+    assert.match(body, /example-service/);
   } finally {
     cleanup();
   }

@@ -43,9 +43,6 @@ export function createApp() {
     try {
       await db.migrate();
       const themes = await db.listThemes(humanEvaluator);
-      if (themes.length === 1) {
-        return c.redirect(`/${encodeURIComponent(themes[0].name)}`);
-      }
       return c.html(renderThemePicker(themes));
     } finally {
       await db.close();
