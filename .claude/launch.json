@@ -3,8 +3,15 @@
   "configurations": [
     {
       "name": "web",
-      "runtimeExecutable": "node",
-      "runtimeArgs": ["--env-file=.env", "dist/web/server.js"],
+      "runtimeExecutable": "/opt/homebrew/bin/mise",
+      "runtimeArgs": [
+        "exec",
+        "node@24.18.0",
+        "--",
+        "node",
+        "--env-file=.env",
+        "dist/web/server.js"
+      ],
       "port": 3000
     }
   ]

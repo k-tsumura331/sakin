@@ -74,6 +74,11 @@ const BASE_STYLE = `
     text-align: center;
     text-decoration: none;
     display: block;
+    transition: transform 0.1s ease, opacity 0.1s ease;
+  }
+  .actions button:active, .actions a.button:active {
+    transform: scale(0.96);
+    opacity: 0.8;
   }
   .btn-drop { background: #ffe0e0; color: #8a1f1f; }
   .btn-detail { background: #eee; color: #333; }

@@ -68,7 +68,7 @@ sakin の UI スタイルガイド。スタイルはほぼ全て [`web/html.ts`]
 AI評価・人間評価を示す小さなピル型ラベル。`web/card.ts` の `verdictBadge()` が `"AI: 採用"` のような文字列で生成する。
 
 ### アクションボタン(`.actions`)
-`.btn-drop` / `.btn-detail` / `.btn-keep` の3種。`.btn-drop`・`.btn-keep` は `<button>`、`.btn-detail` は `<a class="button">` だが同じスタイルクラス構造(`.actions button, .actions a.button`)で統一している。
+`.btn-drop` / `.btn-detail` / `.btn-keep` の3種。`.btn-drop`・`.btn-keep` は `<button>`、`.btn-detail` は `<a class="button">` だが同じスタイルクラス構造(`.actions button, .actions a.button`)で統一している。押下フィードバックとして `:active` 時に `transform: scale(0.96)` と `opacity: 0.8` を適用する。
 
 ### 詳細フォーム(`form.detail-form`)
 評価軸ごとのスライダー(`.axis-row`、`<input type="range">`)、採用/保留/見送りのラジオ選択(`.verdict-choice`)、コメント欄(`textarea`)からなる(`web/pages.ts` の `renderDetailPage`)。
