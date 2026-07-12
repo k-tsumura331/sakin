@@ -85,6 +85,7 @@ export function renderSwipePage(
   return layout(
     `sakin - ${theme}`,
     `
+    <a href="/">← テーマ一覧へ</a>
     <h1>${escapeHtml(theme)}</h1>
     <select onchange="onFilterChange(this)">${optionsHtml}</select>
     <div id="card-slot">${initialCardHtml}</div>
@@ -135,7 +136,7 @@ export function renderDetailPage(
       </div>
     </div>
     <form class="detail-form" method="post" action="${actionHref}">
-      ${axisRows}
+      <div class="card">${axisRows}</div>
       <div class="verdict-choice">${verdictChoices}</div>
       <textarea name="comment" rows="3" placeholder="コメント(任意)">${escapeHtml(card.humanComment ?? "")}</textarea>
       <div class="actions"><button type="submit" class="btn-keep">保存</button></div>

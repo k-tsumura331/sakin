@@ -27,6 +27,7 @@ const BASE_STYLE = `
     background: #f5f5f5;
     color: #1a1a1a;
     padding: 1rem;
+    padding-bottom: 6rem;
   }
   @media (prefers-color-scheme: dark) {
     body { background: #16181c; color: #eaeaea; }
@@ -64,7 +65,23 @@ const BASE_STYLE = `
     margin-right: 0.25rem;
   }
   @media (prefers-color-scheme: dark) { .badge { background: #3a3d44; } }
-  .actions { display: flex; gap: 0.5rem; margin-top: 1rem; max-width: 480px; margin-left: auto; margin-right: auto; }
+  .actions {
+    display: flex;
+    gap: 0.5rem;
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    max-width: 480px;
+    margin: 0 auto;
+    padding: 0.75rem 1rem calc(0.75rem + env(safe-area-inset-bottom));
+    background: #f5f5f5;
+    box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.08);
+    z-index: 10;
+  }
+  @media (prefers-color-scheme: dark) {
+    .actions { background: #16181c; box-shadow: none; border-top: 1px solid #33363d; }
+  }
   .actions button, .actions a.button {
     flex: 1;
     font-size: 1rem;

@@ -40,9 +40,9 @@ sakin の UI スタイルガイド。スタイルはほぼ全て [`web/html.ts`]
 
 ## Layout
 
-- `body`: `padding: 1rem`, `margin: 0`
-- `.card`, `.actions`, `form.detail-form`: `max-width: 480px`、`margin: 1rem auto` でセンタリング
-- `.actions`: `display: flex; gap: 0.5rem;` でボタンを横並び等幅(`flex: 1`)配置
+- `body`: `padding: 1rem`(下部のみ `padding-bottom: 6rem` で固定フッタ分を確保), `margin: 0`
+- `.card`, `form.detail-form`: `max-width: 480px`、`margin: 1rem auto` でセンタリング
+- `.actions`: `position: fixed; left: 0; right: 0; bottom: 0;` で画面下部に固定し、`max-width: 480px; margin: 0 auto;` で中央寄せ。`display: flex; gap: 0.5rem;` でボタンを横並び等幅(`flex: 1`)配置
 - `.verdict-choice`: `display: flex; gap: 0.5rem;` でラジオラベルを等幅配置
 - `.axis-row`: `margin: 0.75rem 0`、ラベルは `display: flex; justify-content: space-between;` でラベルと現在値を両端揃え
 
@@ -68,10 +68,10 @@ sakin の UI スタイルガイド。スタイルはほぼ全て [`web/html.ts`]
 AI評価・人間評価を示す小さなピル型ラベル。`web/card.ts` の `verdictBadge()` が `"AI: 採用"` のような文字列で生成する。
 
 ### アクションボタン(`.actions`)
-`.btn-drop` / `.btn-detail` / `.btn-keep` の3種。`.btn-drop`・`.btn-keep` は `<button>`、`.btn-detail` は `<a class="button">` だが同じスタイルクラス構造(`.actions button, .actions a.button`)で統一している。押下フィードバックとして `:active` 時に `transform: scale(0.96)` と `opacity: 0.8` を適用する。
+`.btn-drop` / `.btn-detail` / `.btn-keep` の3種(詳細ページでは `.btn-keep` の保存ボタン1つ)。`.btn-drop`・`.btn-keep` は `<button>`、`.btn-detail` は `<a class="button">` だが同じスタイルクラス構造(`.actions button, .actions a.button`)で統一している。押下フィードバックとして `:active` 時に `transform: scale(0.96)` と `opacity: 0.8` を適用する。スワイプ・詳細ページ共通で画面下部に固定表示され、コンテンツはその分 `body` の `padding-bottom` で余白を確保している。
 
 ### 詳細フォーム(`form.detail-form`)
-評価軸ごとのスライダー(`.axis-row`、`<input type="range">`)、採用/保留/見送りのラジオ選択(`.verdict-choice`)、コメント欄(`textarea`)からなる(`web/pages.ts` の `renderDetailPage`)。
+評価軸ごとのスライダー(`.axis-row`、`<input type="range">`)をカードと同じ `.card` スタイルのBOXで囲み、視覚的に区切っている。続けて採用/保留/見送りのラジオ選択(`.verdict-choice`)、コメント欄(`textarea`)が並ぶ(`web/pages.ts` の `renderDetailPage`)。
 
 ### スワイプ操作
 CSSではなく `web/pages.ts` の `attachDrag()`(素の DOM API + `pointerdown/move/up`)で実装。閾値 `80px` を超えるドラッグで `translateX(600px)` / `translateX(-600px)` にアニメーションしてから採用/見送りを確定する。
