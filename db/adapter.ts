@@ -63,6 +63,7 @@ export interface DbHandle {
   migrate(): Promise<void>;
   upsertTheme(theme: ThemeDefinition): Promise<void>;
   insertIdeaIfAbsent(idea: IdeaRecord): Promise<boolean>;
+  ideaExists(themeName: string, ideaId: string): Promise<boolean>;
   countIdeasInBatch(themeName: string, batch: string): Promise<number>;
   pruneUnevaluatedBatch(themeName: string, batch: string): Promise<number>;
   countUnevaluatedIdeas(themeName: string, evaluator: string): Promise<number>;
@@ -202,6 +203,13 @@ export async function openDb(dbFile: string): Promise<DbHandle> {
           createdAt: idea.createdAt,
         });
       return result.changes > 0;
+    },
+
+    async ideaExists(themeName, ideaId) {
+      const row = raw
+        .prepare(`SELECT 1 FROM ideas WHERE theme_name = ? AND id = ?`)
+        .get(themeName, ideaId);
+      return row !== undefined;
     },
 
     async countIdeasInBatch(themeName, batch) {
