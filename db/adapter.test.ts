@@ -70,6 +70,18 @@ test("insertIdeaIfAbsent is idempotent on id", async () => {
   }
 });
 
+test("ideaExists is scoped to the theme and reflects insertion", async () => {
+  const db = await freshDb();
+  try {
+    assert.equal(await db.ideaExists(THEME.name, "01"), false);
+    await db.insertIdeaIfAbsent(idea("01"));
+    assert.equal(await db.ideaExists(THEME.name, "01"), true);
+    assert.equal(await db.ideaExists("other-theme", "01"), false);
+  } finally {
+    await db.close();
+  }
+});
+
 test("pruneUnevaluatedBatch removes only ideas with no evaluation", async () => {
   const db = await freshDb();
   try {
