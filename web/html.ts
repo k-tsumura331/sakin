@@ -89,6 +89,9 @@ const BASE_STYLE = `
     .btn-keep { background: #234a2a; color: #b3f5bc; }
   }
   .empty { text-align: center; opacity: 0.7; margin-top: 3rem; }
+  .theme-list { list-style: none; padding: 0; max-width: 480px; margin: 1rem auto; }
+  .theme-list li { margin-bottom: 1rem; }
+  .theme-stats { opacity: 0.6; font-size: 0.85rem; margin-top: 0.25rem; }
   .axis-row { margin: 0.75rem 0; }
   .axis-row label { display: flex; justify-content: space-between; font-size: 0.9rem; }
   form.detail-form { max-width: 480px; margin: 1rem auto; }

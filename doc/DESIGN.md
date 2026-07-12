@@ -76,6 +76,9 @@ AI評価・人間評価を示す小さなピル型ラベル。`web/card.ts` の 
 ### スワイプ操作
 CSSではなく `web/pages.ts` の `attachDrag()`(素の DOM API + `pointerdown/move/up`)で実装。閾値 `80px` を超えるドラッグで `translateX(600px)` / `translateX(-600px)` にアニメーションしてから採用/見送りを確定する。
 
+### テーマ一覧(`.theme-list`)
+テーマが2件以上ある場合にトップページ(`/`)で表示される(1件のみの場合はそのテーマのスワイプ画面へ自動リダイレクトされ、この一覧は経由しない)。各テーマ名・説明の下に `.theme-stats`(`.seed-terms` と同系統の控えめなテキスト)で案件数・AI高評価件数・自分の評価済み件数を表示する(`web/pages.ts` の `renderThemePicker`)。
+
 ## Do's and Don'ts
 
 - 新しいスタイルは `BASE_STYLE`(`web/html.ts`)に追記する。別ファイルや別の置き場所を作らない

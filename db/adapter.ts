@@ -35,6 +35,9 @@ export type ReviewFilter =
 export interface ThemeSummary {
   name: string;
   description: string;
+  ideaCount: number;
+  aiKeepCount: number;
+  humanEvaluatedCount: number;
 }
 
 export interface ReviewCard {
@@ -69,7 +72,7 @@ export interface DbHandle {
   countUnevaluatedIdeas(themeName: string, evaluator: string): Promise<number>;
   listUnevaluatedIdeas(themeName: string, evaluator: string, limit: number): Promise<IdeaRow[]>;
   insertEvaluation(evaluation: EvaluationRecord): Promise<void>;
-  listThemes(): Promise<ThemeSummary[]>;
+  listThemes(humanEvaluator: string): Promise<ThemeSummary[]>;
   getNextIdeaForReview(
     themeName: string,
     filter: ReviewFilter,
@@ -298,10 +301,36 @@ export async function openDb(dbFile: string): Promise<DbHandle> {
         });
     },
 
-    async listThemes() {
+    async listThemes(humanEvaluator) {
       return raw
-        .prepare(`SELECT name, description FROM themes ORDER BY name ASC`)
-        .all() as ThemeSummary[];
+        .prepare(
+          `
+          SELECT
+            t.name AS name,
+            t.description AS description,
+            (SELECT COUNT(*) FROM ideas i WHERE i.theme_name = t.name) AS ideaCount,
+            (
+              SELECT COUNT(*)
+              FROM ideas i
+              JOIN (
+                SELECT idea_id, verdict,
+                       ROW_NUMBER() OVER (PARTITION BY idea_id ORDER BY created_at DESC, id DESC) AS rn
+                FROM evaluations
+                WHERE evaluator LIKE 'ai:%'
+              ) la ON la.idea_id = i.id AND la.rn = 1
+              WHERE i.theme_name = t.name AND la.verdict = 'keep'
+            ) AS aiKeepCount,
+            (
+              SELECT COUNT(DISTINCT e.idea_id)
+              FROM evaluations e
+              JOIN ideas i ON i.id = e.idea_id
+              WHERE i.theme_name = t.name AND e.evaluator = @humanEvaluator
+            ) AS humanEvaluatedCount
+          FROM themes t
+          ORDER BY t.name ASC
+          `,
+        )
+        .all({ humanEvaluator }) as ThemeSummary[];
     },
 
     async getNextIdeaForReview(themeName, filter, humanEvaluator, afterId) {

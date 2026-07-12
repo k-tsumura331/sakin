@@ -37,8 +37,14 @@ test("syncThemes upserts every theme YAML in the directory and returns their nam
 
     const db = await openDb(dbFile);
     try {
-      assert.deepEqual(await db.listThemes(), [
-        { name: "example-service", description: "サンプル説明" },
+      assert.deepEqual(await db.listThemes("human:tester"), [
+        {
+          name: "example-service",
+          description: "サンプル説明",
+          ideaCount: 0,
+          aiKeepCount: 0,
+          humanEvaluatedCount: 0,
+        },
       ]);
     } finally {
       await db.close();
@@ -62,8 +68,14 @@ test("syncThemes re-run updates an existing theme's description (upsert, not dup
 
     const db = await openDb(dbFile);
     try {
-      assert.deepEqual(await db.listThemes(), [
-        { name: "example-service", description: "更新後の説明" },
+      assert.deepEqual(await db.listThemes("human:tester"), [
+        {
+          name: "example-service",
+          description: "更新後の説明",
+          ideaCount: 0,
+          aiKeepCount: 0,
+          humanEvaluatedCount: 0,
+        },
       ]);
     } finally {
       await db.close();

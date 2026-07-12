@@ -266,8 +266,42 @@ test("getReviewCard returns null for a nonexistent idea", async () => {
 test("listThemes returns synced themes ordered by name", async () => {
   const db = await freshDb();
   try {
-    const themes = await db.listThemes();
-    assert.deepEqual(themes, [{ name: THEME.name, description: THEME.description }]);
+    const themes = await db.listThemes("human:tester");
+    assert.deepEqual(themes, [
+      {
+        name: THEME.name,
+        description: THEME.description,
+        ideaCount: 0,
+        aiKeepCount: 0,
+        humanEvaluatedCount: 0,
+      },
+    ]);
+  } finally {
+    await db.close();
+  }
+});
+
+test("listThemes counts ideas, AI-keep verdicts, and this human's evaluated ideas", async () => {
+  const db = await freshDb();
+  try {
+    await db.insertIdeaIfAbsent(idea("01"));
+    await db.insertIdeaIfAbsent(idea("02"));
+    await db.insertIdeaIfAbsent(idea("03"));
+    await db.insertEvaluation(evaluation("01", "ai:model-a", "keep"));
+    await db.insertEvaluation(evaluation("02", "ai:model-a", "drop"));
+    await db.insertEvaluation(evaluation("01", "human:tester", "maybe"));
+    await db.insertEvaluation(evaluation("03", "human:someone-else", "keep"));
+
+    const themes = await db.listThemes("human:tester");
+    assert.deepEqual(themes, [
+      {
+        name: THEME.name,
+        description: THEME.description,
+        ideaCount: 3,
+        aiKeepCount: 1,
+        humanEvaluatedCount: 1,
+      },
+    ]);
   } finally {
     await db.close();
   }

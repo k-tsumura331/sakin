@@ -153,9 +153,13 @@ export function renderThemePicker(themes: ThemeSummary[]): string {
   }
   const items = themes
     .map(
-      (t) =>
-        `<li><a href="/${encodeURIComponent(t.name)}">${escapeHtml(t.name)} — ${escapeHtml(t.description)}</a></li>`,
+      (t) => `
+      <li>
+        <a href="/${encodeURIComponent(t.name)}">${escapeHtml(t.name)} — ${escapeHtml(t.description)}</a>
+        <div class="theme-stats">案 ${t.ideaCount}件 / AI高評価 ${t.aiKeepCount}件 / 自分の評価済み ${t.humanEvaluatedCount}件</div>
+      </li>
+    `,
     )
     .join("");
-  return layout("sakin", `<h1>テーマを選択</h1><ul>${items}</ul>`);
+  return layout("sakin", `<h1>テーマを選択</h1><ul class="theme-list">${items}</ul>`);
 }

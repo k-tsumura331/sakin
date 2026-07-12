@@ -42,7 +42,7 @@ export function createApp() {
     const db = await openDb(paths.dbFile);
     try {
       await db.migrate();
-      const themes = await db.listThemes();
+      const themes = await db.listThemes(humanEvaluator);
       if (themes.length === 1) {
         return c.redirect(`/${encodeURIComponent(themes[0].name)}`);
       }
