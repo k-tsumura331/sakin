@@ -130,7 +130,7 @@ export function renderDetailPage(
       <div>${verdictBadge("AI", card.aiVerdict)}${verdictBadge("あなた", card.humanVerdict)}</div>
       <h2>${escapeHtml(card.title)}</h2>
       <div class="body">${escapeHtml(card.body)}</div>
-      <div class="body" style="opacity:0.6; font-size:0.85rem; margin-top:0.5rem;">
+      <div class="body seed-terms">
         種用語: ${card.seedTerms.map(escapeHtml).join("・")}
       </div>
     </div>
@@ -138,7 +138,7 @@ export function renderDetailPage(
       ${axisRows}
       <div class="verdict-choice">${verdictChoices}</div>
       <textarea name="comment" rows="3" placeholder="コメント(任意)">${escapeHtml(card.humanComment ?? "")}</textarea>
-      <div class="actions"><button type="submit" class="btn-keep" style="flex:1;">保存</button></div>
+      <div class="actions"><button type="submit" class="btn-keep">保存</button></div>
     </form>
   `,
   );

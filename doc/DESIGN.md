@@ -33,6 +33,7 @@ sakin の UI スタイルガイド。スタイルはほぼ全て [`web/html.ts`]
 - `h1`: `font-size: 1.1rem`
 - `.card h2`: `font-size: 1.15rem`
 - `.card .body`: `line-height: 1.5`, `white-space: pre-wrap`
+- `.card .seed-terms`(`.body`と併用): `font-size: 0.85rem`, `opacity: 0.6`, `margin-top: 0.5rem`
 - `.badge`: `font-size: 0.75rem`
 - `.axis-row label`: `font-size: 0.9rem`
 - select / textarea / input[type="text"]: `font-size: 1rem`
@@ -78,5 +79,6 @@ CSSではなく `web/pages.ts` の `attachDrag()`(素の DOM API + `pointerdown/
 ## Do's and Don'ts
 
 - 新しいスタイルは `BASE_STYLE`(`web/html.ts`)に追記する。別ファイルや別の置き場所を作らない
+- インラインの `style="..."` 属性は使わず、クラスとして `BASE_STYLE` に定義する
 - 意味色は「見送り(赤)」「詳細(グレー)」「採用(緑)」の3色運用を維持する
 - ダーク対応が必要な色は `@media (prefers-color-scheme: dark)` ブロックに追記する(JSによるテーマ切り替えは導入しない)
