@@ -54,6 +54,7 @@ const BASE_STYLE = `
   }
   .card h2 { margin-top: 0; font-size: 1.15rem; }
   .card .body { white-space: pre-wrap; line-height: 1.5; }
+  .card .seed-terms { opacity: 0.6; font-size: 0.85rem; margin-top: 0.5rem; }
   .badge {
     display: inline-block;
     font-size: 0.75rem;

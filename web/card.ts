@@ -28,7 +28,7 @@ export function renderCardFragment(
       <div>${verdictBadge("AI", card.aiVerdict)}${verdictBadge("あなた", card.humanVerdict)}</div>
       <h2>${escapeHtml(card.title)}</h2>
       <div class="body">${escapeHtml(card.body)}</div>
-      <div class="body" style="opacity:0.6; font-size:0.85rem; margin-top:0.5rem;">
+      <div class="body seed-terms">
         種用語: ${card.seedTerms.map(escapeHtml).join("・")}
       </div>
     </div>
