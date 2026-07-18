@@ -24,7 +24,7 @@
     "web": "node dist/web/server.js"
   },
   "devDependencies": {
-    "@biomejs/biome": "^2.5.3",
+    "@biomejs/biome": "^2.5.4",
     "@types/better-sqlite3": "^7.6.13",
     "@types/node": "^26.1.1",
     "typescript": "^7.0.2"
